@@ -1,0 +1,125 @@
+tosca_definitions_version: tosca_simple_yaml_1_2
+
+node_types:
+  myapp.nodes.WebApp:
+    derived_from: tosca.nodes.SoftwareComponent
+    properties:
+      db_user:
+        type: string
+      db_password:
+        type: string
+    capabilities:
+      endpoint:
+        type: tosca.capabilities.Endpoint
+    requirements:
+      - database_endpoint:
+          capability: tosca.capabilities.Endpoint.Database
+      - redis_endpoint:
+          capability: doml.capabilities.Endpoint.Redis
+
+  doml.nodes.Redis:
+    derived_from: tosca.nodes.SoftwareComponent
+    capabilities:
+      redis_endpoint:
+        type: doml.capabilities.Endpoint.Redis
+  
+  doml.nodes.SQLDatabaseService:
+    derived_from: tosca.nodes.Root
+    properties:
+      user:
+        type: string
+      password:
+        type: string
+    capabilities:
+      database_endpoint:
+        type: tosca.capabilities.Endpoint.Database
+  
+capability_types:
+  doml.capabilities.Endpoint.Redis:
+    derived_from: tosca.capabilities.Endpoint
+
+policy_types:
+  doml.policies.Scaling:
+    derived_from: tosca.policies.Root
+
+topology_template:
+  inputs:
+    db_user:
+      type: string
+    db_password:
+      type: string
+    ssh_pubkey:
+      type: string
+
+  node_templates:
+    webapp:
+      type: myapp.nodes.WebApp            # has to be defined by the user
+      properties:
+        db_user: { get_input: db_user }
+        db_password: { get_input: db_password }
+      requirements:
+        - host: webapp_vm
+        - database_endpoint: db
+        - redis_endpoint: redis
+
+    redis:
+      type: doml.nodes.Redis
+      requirements:
+        - host: redis_vm
+
+    webapp_vm:
+      type: tosca.nodes.Compute
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            mem_size: 4 GB
+        os:
+          properties:
+            type: linux
+            distribution: ubuntu
+            version: "18.04"
+        scalable:                         # Something is wrong with Example 20 in section 2.13
+          properties:
+            min_instances: 1
+            max_instances: 3
+            default_instances: 2
+
+    redis_vm:
+      type: tosca.nodes.Compute
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            mem_size: 16 GB
+        os:
+          properties:
+            type: linux
+            distribution: ubuntu
+            version: 18.04
+        # TODO
+
+    db:
+      type: doml.nodes.SQLDatabaseService # extends doml.nodes.CloudProviderService, provides tosca.capabilities.Endpoint.Database
+      properties:
+        user: { get_input: db_user }
+        password: { get_input: db_password }
+        # Try swapping the line above with the one below
+        # password: p4ssw0rd
+    
+    load_balancer:
+      type: tosca.nodes.LoadBalancer
+      requirements:
+        - application: webapp             # not clear
+    # The scaling conditions could be triggered by aspects of the LB, e.g. the avg. waiting time, if the underlying
+    # technologies provided by the cloud providers support this kind of interaction
+
+  policies:
+    - webapp_vm_scaling:
+        type: doml.policies.Scaling
+        targets: [ webapp_vm ]
+#        properties:
+#          scale_up:
+#            cpu_above: 90.0
+#          scale_down:
+#            cpu_below: 20.0
