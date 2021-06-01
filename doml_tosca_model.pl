@@ -47,7 +47,7 @@ node(webapp,
     [],
     [
         host(webapp_vm),
-        database_endpoint(db),  % Try removing this requirement
+        % database_endpoint(db),  % Try removing this requirement
         redis_endpoint(redis)
     ]).
 
@@ -73,9 +73,9 @@ node(db,
 
 % Helper procedures
 
-extends_type(TypeA, TypeA) :- !.
+extends_type(TypeA, TypeA).
 extends_type(TypeA, TypeB) :-
-    type(TypeA, ExtTypeA, _, _, _),
+    type(TypeA, ExtTypeA, _, _, _), !,
     extends_type(ExtTypeA, TypeB).
 
 type_offers_capability(Type, CapType) :-

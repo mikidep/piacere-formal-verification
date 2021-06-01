@@ -1,91 +1,18 @@
 import os
 import sys
-import textwrap
 from pyswip import Prolog
 
+from toscaparser.elements.capabilitytype import CapabilityTypeDef
 from toscaparser.tosca_template import ToscaTemplate
 from toscaparser.elements.nodetype import NodeType
-from toscaparser.elements.property_definition import PropertyDef
-from toscaparser.elements.capabilitytype import CapabilityTypeDef
 from toscaparser.nodetemplate import NodeTemplate
-from toscaparser.properties import Property
-from toscaparser.capabilities import Capability
-from toscaparser.functions import GetInput
 
-def build_node_type_fact(node_type: NodeType) -> str:
-    def build_property_def(prop_def: PropertyDef) -> str:
-        requiredness = "true" if prop_def.required else "false"
-        return f"property({prop_def.name}, {prop_def.schema['type']}, {requiredness})"
-    prop_defs = "[" \
-        + ", ".join([build_property_def(prop_def) for prop_def in node_type.get_properties_def_objects()]) \
-        + "]"
-
-    def build_capability_def(cap_def: CapabilityTypeDef):
-        return f"capability({cap_def.name}, '{cap_def.type}')"
-    cap_defs = "[" \
-        + ", ".join([build_capability_def(cap_def) for cap_def in node_type.get_capabilities_objects()]) \
-        + "]"
-
-    def build_type_requirement(req_name, req_def):
-        return f"requirement({req_name}, '{req_def['capability']}')"
-    req_l = []
-    for req in node_type.requirements:
-        req_name = list(req)[0] # Gets the first key of req
-        req_def = req[req_name]
-        req_l.append(build_type_requirement(req_name, req_def))
-    requirements = "[" + ", ".join(req_l) + "]"
-
-    return textwrap.dedent(f"""
-    node_type(
-        '{node_type.type}',
-        '{node_type.parent_type.type if node_type.parent_type is not None else 'none'}',
-        {prop_defs},
-        {cap_defs},
-        {requirements}
-    )""")
-   
-
-def build_node_fact(node_tpl: NodeTemplate) -> str:
-    def build_node_property(prop: Property) -> str:
-        if type(prop.value) in [int, float]:
-            prop_val_str = str(prop.value)
-        elif type(prop.value) is str:
-            prop_val_str = '"' + prop.value + '"' # TODO: escaping
-        elif type(prop.value) is bool:
-            prop_val_str = "true" if prop.value else "false"
-        elif type(prop.value) is GetInput:
-            prop_val_str = f"input({prop.value.args[0]})"
-        else:
-            raise ValueError(f"Property type {type(prop.value)} not handled.")
-        return f"property({prop.name}, {prop_val_str})"
-    properties = "[" \
-        + ", ".join([build_node_property(prop) for prop in node_tpl.get_properties_objects()]) \
-        + "]"
-    
-    def build_node_capability(cap: Capability):
-        properties = "[" \
-            + ", ".join([build_node_property(prop) for prop in cap.get_properties_objects()]) \
-            + "]"
-        return f"capability({cap.name}, {cap.definition.type}, {properties})"
-    capabilities = "[" \
-        + ", ".join([build_node_capability(cap) for cap in node_tpl.get_capabilities_objects()]) \
-        + "]"
-
-    def build_node_requirement(req):
-        req_name = list(req)[0]
-        return f"requirement({req_name}, {req[req_name]})"
-    requirements = "[" \
-        + ", ".join([build_node_requirement(req) for req in node_tpl.requirements]) \
-        + "]"
-
-    return textwrap.dedent(f"""
-    node(
-        {node_tpl.name},
-        '{node_tpl.type}',
-        {properties},
-        {capabilities},
-        {requirements}
-    )""")
+from tosca2swipl import (
+    build_node_type_fact,
+    build_node_fact,
+    build_policy_fact,
+    build_cap_type_fact
+)
 
 def get_types_and_supertypes_for_nodes(node_tpls: list[NodeTemplate]):
     def get_type_and_supertypes(ntype: NodeType) -> list[NodeType]:
@@ -103,14 +30,38 @@ def get_types_and_supertypes_for_nodes(node_tpls: list[NodeTemplate]):
             if ntype.type not in type_names)
     return types
 
+def get_captypes_and_parent_types_for_types(node_types: list[NodeType]) -> list[CapabilityTypeDef]:
+    def get_captype_and_parent_types(captype: CapabilityTypeDef) -> list[CapabilityTypeDef]:
+        if captype.parent_type is None:
+            return [captype]
+        else:
+            return [captype] + get_captype_and_parent_types(captype.parent_type)
+    captypes: list[CapabilityTypeDef] = []
+    for ntype in node_types:
+        for captype in ntype.get_capabilities_objects():
+            cap_names = [captype.type for captype in captypes]
+            captypes.extend(captype_
+                for captype_ in get_captype_and_parent_types(captype)
+                if captype_.type not in cap_names)
+    return captypes
+        
+
 tosca = ToscaTemplate(sys.argv[1])
 prolog = Prolog()
 
-for node_type in get_types_and_supertypes_for_nodes(tosca.nodetemplates):
+node_types = get_types_and_supertypes_for_nodes(tosca.nodetemplates)
+for node_type in node_types:
     prolog.assertz(build_node_type_fact(node_type))
+    # print(build_node_type_fact(node_type))
+
+for cap_type in get_captypes_and_parent_types_for_types(node_types):
+    prolog.assertz(build_cap_type_fact(cap_type))
 
 for node_tpl in tosca.nodetemplates:
     prolog.assertz(build_node_fact(node_tpl))
+
+for pol in tosca.topology_template.policies:
+    prolog.assertz(build_policy_fact(pol))
 
 prolog.consult(os.path.join(sys.path[0], "predicates.pl"))
 prolog.consult(os.path.join(sys.path[0], "checks.pl"))
@@ -118,3 +69,9 @@ prolog.consult(os.path.join(sys.path[0], "checks.pl"))
 hardcoded_db_passwords = prolog.query("has_hardcoded_db_password(X)")
 for res in hardcoded_db_passwords:
     print(f"Node {res['X']} has a hardcoded password") # type: ignore
+
+unsatisfied_requirements = prolog.query("has_unsatisfied_requirements(NodeName, TypeReq)")
+if unsatisfied_requirements:
+    print("\nUnsatisfied requirements:")
+    for res in unsatisfied_requirements:
+        print(res)

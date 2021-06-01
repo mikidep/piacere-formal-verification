@@ -8,7 +8,7 @@
             "name": "Python: File corrente",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/poc.py",
             "console": "integratedTerminal",
             "args": ["doml_tosca.yaml"],
             "justMyCode": false

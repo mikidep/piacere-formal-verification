@@ -59,7 +59,7 @@ topology_template:
         db_password: { get_input: db_password }
       requirements:
         - host: webapp_vm
-        - database_endpoint: db
+        # - database_endpoint: db
         - redis_endpoint: redis
 
     redis:
@@ -96,16 +96,16 @@ topology_template:
           properties:
             type: linux
             distribution: ubuntu
-            version: 18.04
+            version: "18.04"
         # TODO
 
     db:
       type: doml.nodes.SQLDatabaseService # extends doml.nodes.CloudProviderService, provides tosca.capabilities.Endpoint.Database
       properties:
         user: { get_input: db_user }
-        password: { get_input: db_password }
+        # password: { get_input: db_password }
         # Try swapping the line above with the one below
-        # password: p4ssw0rd
+        password: p4ssw0rd
     
     load_balancer:
       type: tosca.nodes.LoadBalancer

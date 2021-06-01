@@ -191,11 +191,12 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "tosca-parser"
-version = "2.3.0"
+version = "2.3.1.dev4"
 description = "Parser for TOSCA Simple Profile in YAML."
 category = "main"
 optional = false
 python-versions = ">=3.6"
+develop = true
 
 [package.dependencies]
 cliff = ">=2.8.0,<2.9.0 || >2.9.0"
@@ -204,6 +205,10 @@ python-dateutil = ">=2.5.3"
 PyYAML = ">=3.12"
 requests = ">=2.14.2"
 stevedore = ">=1.20.0"
+
+[package.source]
+type = "directory"
+url = "../../tosca-parser"
 
 [[package]]
 name = "urllib3"
@@ -229,7 +234,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7fad78029c51456a297fd3ed2e0d03eb84748116f6650b0ee05f20505b9ad830"
+content-hash = "675965f3d8919e12d547f3f03717b5e080c89704b321ea8a785b64b7c04e3bd1"
 
 [metadata.files]
 attrs = [
@@ -330,10 +335,7 @@ stevedore = [
     {file = "stevedore-3.3.0-py3-none-any.whl", hash = "sha256:50d7b78fbaf0d04cd62411188fa7eedcb03eb7f4c4b37005615ceebe582aa82a"},
     {file = "stevedore-3.3.0.tar.gz", hash = "sha256:3a5bbd0652bf552748871eaa73a4a8dc2899786bc497a2aa1fcb4dcdb0debeee"},
 ]
-tosca-parser = [
-    {file = "tosca-parser-2.3.0.tar.gz", hash = "sha256:dd0b89b093f02b797885b4ce344b0a7c66aefaa057e715565889d16713895d30"},
-    {file = "tosca_parser-2.3.0-py3-none-any.whl", hash = "sha256:9c9b413a003cec5681b6c3b6684fac041d08b39f277c551bf0f18847a41bdf4e"},
-]
+tosca-parser = []
 urllib3 = [
     {file = "urllib3-1.26.4-py2.py3-none-any.whl", hash = "sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df"},
     {file = "urllib3-1.26.4.tar.gz", hash = "sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937"},
