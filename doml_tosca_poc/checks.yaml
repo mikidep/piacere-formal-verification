@@ -1,0 +1,35 @@
+- name: hardcoded_password
+  description: Node $x has a hardcoded password.
+  check:
+    and:
+    - node:
+        $x:
+          type: $nodeType
+          properties:
+            password: $p
+
+    - predicate:
+        type_offers_capability:
+          args:
+          - $nodeType
+          - tosca.capabilities.Endpoint.Database
+    - not:
+        match:
+        - $p
+        - get_input:
+            args: [$_]
+- name: unsatisfied_requirement
+  description: node $nodeName has unsatisfied $typeReq
+  check:
+    and:
+    - node:
+        $nodeName:
+          type: $nodeType
+          requirements: $nodeReqs
+    - predicate:
+        type_has_requirement:
+          args: [$nodeType, $typeReq]
+    - not:
+        predicate:
+          requirement_satisfied:
+            args: [$nodeReqs, $typeReq]

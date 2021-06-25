@@ -24,7 +24,6 @@ type_has_requirement(Type, Req) :-
     member(Req, Reqs).
 
 requirement_satisfied(_, requirement(_, _, _, _, occurrences(0, _))) :- !.
-
 requirement_satisfied(NodeReqs, requirement(ReqName, CapType, ReqNodeType, ReqRel, occurrences(OccBot, OccTop))) :-
     select(requirement(ReqName, NodeName), NodeReqs, LeftNodeReqs),
     node(NodeName, NodeType, _, _, _),
@@ -33,3 +32,7 @@ requirement_satisfied(NodeReqs, requirement(ReqName, CapType, ReqNodeType, ReqRe
     NewOccBot is OccBot-1,
     requirement_satisfied(LeftNodeReqs, requirement(ReqName, CapType, ReqNodeType, ReqRel, occurrences(NewOccBot, OccTop))).
 
+subset([ ],_).
+subset([H|T],List) :-
+    member(H,List),
+    subset(T,List).

@@ -2,6 +2,16 @@ import os
 import sys
 from pyswip import Prolog
 
+import yaml
+from yaml.loader import SafeLoader
+
+class SafeLineLoader(SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super(SafeLineLoader, self).construct_mapping(node, deep=deep)
+        # Add 1 so line numbering starts at 1
+        mapping['__line__'] = node.start_mark.line + 1
+        return mapping
+
 from toscaparser.elements.capabilitytype import CapabilityTypeDef
 from toscaparser.tosca_template import ToscaTemplate
 from toscaparser.elements.nodetype import NodeType
@@ -13,6 +23,8 @@ from tosca2swipl import (
     build_policy_fact,
     build_cap_type_fact
 )
+
+from check2swipl import build_check_pred
 
 def get_types_and_supertypes_for_nodes(node_tpls: list[NodeTemplate]):
     def get_type_and_supertypes(ntype: NodeType) -> list[NodeType]:
@@ -48,6 +60,8 @@ def get_captypes_and_parent_types_for_types(node_types: list[NodeType]) -> list[
 
 tosca = ToscaTemplate(sys.argv[1])
 prolog = Prolog()
+with open(sys.argv[1]) as toscaf:
+    tosca_yaml = yaml.load(toscaf, Loader=SafeLineLoader)
 
 node_types = get_types_and_supertypes_for_nodes(tosca.nodetemplates)
 for node_type in node_types:
@@ -66,12 +80,29 @@ for pol in tosca.topology_template.policies:
 prolog.consult(os.path.join(sys.path[0], "predicates.pl"))
 prolog.consult(os.path.join(sys.path[0], "checks.pl"))
 
-hardcoded_db_passwords = prolog.query("has_hardcoded_db_password(X)")
-for res in hardcoded_db_passwords:
-    print(f"Node {res['X']} has a hardcoded password") # type: ignore
+with open("checks.yaml") as checks_yaml_f:
+    check_yamls = yaml.load(checks_yaml_f)
+for check_yaml in check_yamls:
+    header, description, ext_vars, pred = build_check_pred(check_yaml)
+    prolog.assertz(pred)
+    results = prolog.query(header)
+    for ext_var in ext_vars:
+        description = description.replace(ext_var, "{" + ext_var + "}")
+    for res in results:
+        fmt_dict = {ext_var: res[ext_vars[ext_var]] for ext_var in ext_vars} # type: ignore
+        print(description.format(**fmt_dict))
 
-unsatisfied_requirements = prolog.query("has_unsatisfied_requirements(NodeName, TypeReq)")
-if unsatisfied_requirements:
-    print("\nUnsatisfied requirements:")
-    for res in unsatisfied_requirements:
-        print(res)
+# hardcoded_db_passwords = prolog.query("has_hardcoded_db_password(X)")
+# for res in hardcoded_db_passwords:
+#     nodename = res['X'] # type: ignore
+#     line = tosca_yaml['topology_template']['node_templates'][nodename]['properties']['__line__']
+#     print(f"At line {line}: node {nodename} has a hardcoded password") # type: ignore
+
+# unsatisfied_requirements = prolog.query("has_unsatisfied_requirements(NodeName, TypeReq)")
+# if unsatisfied_requirements:
+#     print("\nUnsatisfied requirements:")
+#     for res in unsatisfied_requirements:
+#         nodename = res['NodeName'] # type: ignore
+#         line = tosca_yaml['topology_template']['node_templates'][nodename]['__line__']
+#         req = res['TypeReq'] # type: ignore
+#         print(f"At line {line}: node {nodename} has unsatisfied {req}")

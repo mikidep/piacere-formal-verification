@@ -72,7 +72,7 @@ def build_node_fact(node_tpl: NodeTemplate) -> str:
         elif type(prop.value) is bool:
             prop_val_str = "true" if prop.value else "false"
         elif type(prop.value) is GetInput:
-            prop_val_str = f"input({prop.value.args[0]})"
+            prop_val_str = f"get_input({prop.value.args[0]})"
         else:
             raise ValueError(f"Property type {type(prop.value)} not handled.")
         return f"property({prop.name}, {prop_val_str})"
@@ -84,7 +84,7 @@ def build_node_fact(node_tpl: NodeTemplate) -> str:
         properties = "[" \
             + ", ".join([build_node_property(prop) for prop in cap.get_properties_objects()]) \
             + "]"
-        return f"capability({cap.name}, {cap.definition.type}, {properties})"
+        return f"capability({cap.name}, {properties})"
     capabilities = "[" \
         + ", ".join([build_node_capability(cap) for cap in node_tpl.get_capabilities_objects()]) \
         + "]"
