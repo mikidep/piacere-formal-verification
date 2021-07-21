@@ -24,7 +24,7 @@ from tosca2swipl import (
     build_cap_type_fact
 )
 
-from check2swipl import build_check_pred
+from check2swipl import build_check_pred, fmt_result
 
 def get_types_and_supertypes_for_nodes(node_tpls: list[NodeTemplate]):
     def get_type_and_supertypes(ntype: NodeType) -> list[NodeType]:
@@ -89,7 +89,7 @@ for check_yaml in check_yamls:
     for ext_var in ext_vars:
         description = description.replace(ext_var, "{" + ext_var + "}")
     for res in results:
-        fmt_dict = {ext_var: res[ext_vars[ext_var]] for ext_var in ext_vars} # type: ignore
+        fmt_dict = {ext_var: fmt_result(res[ext_vars[ext_var]]) for ext_var in ext_vars} # type: ignore
         print(description.format(**fmt_dict))
 
 # hardcoded_db_passwords = prolog.query("has_hardcoded_db_password(X)")

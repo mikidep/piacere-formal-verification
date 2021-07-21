@@ -7,7 +7,6 @@
           type: $nodeType
           properties:
             password: $p
-
     - predicate:
         type_offers_capability:
           args:
@@ -18,6 +17,7 @@
         - $p
         - get_input:
             args: [$_]
+
 - name: unsatisfied_requirement
   description: node $nodeName has unsatisfied $typeReq
   check:

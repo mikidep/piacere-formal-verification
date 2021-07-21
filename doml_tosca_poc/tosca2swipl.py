@@ -13,6 +13,7 @@ def build_property_def(prop_def: PropertyDef) -> str:
     requiredness = "true" if prop_def.required else "false"
     return f"property({prop_def.name}, {prop_def.schema['type']}, {requiredness})"
 
+
 def build_node_type_fact(node_type: NodeType) -> str:
     prop_defs = "[" \
         + ", ".join([build_property_def(prop_def) for prop_def in node_type.get_properties_def_objects()]) \
@@ -35,7 +36,7 @@ def build_node_type_fact(node_type: NodeType) -> str:
             req_occ = f"occurrences({occ[0]}, {'unbounded' if occ[1] == 'UNBOUNDED' else occ[1]})"
         return f"requirement({req_name}, '{req_cap}', '{req_node}', '{req_rel}', {req_occ})"
     req_l = []
-    for req in node_type.requirements:
+    for req in node_type.requirements:  # type: ignore
         req_name = list(req)[0] # Gets the first key of req
         req_def = req[req_name]
         req_l.append(build_type_requirement(req_name, req_def))
@@ -49,6 +50,7 @@ def build_node_type_fact(node_type: NodeType) -> str:
         {cap_defs},
         {requirements}
     )""")
+
 
 def build_cap_type_fact(captype: CapabilityTypeDef) -> str:
     prop_defs = "[" \
@@ -104,6 +106,7 @@ def build_node_fact(node_tpl: NodeTemplate) -> str:
         {capabilities},
         {requirements}
     )""")
+
 
 def build_policy_fact(pol: Policy) -> str:
     return textwrap.dedent(f"""
