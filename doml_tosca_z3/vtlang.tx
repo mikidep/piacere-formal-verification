@@ -1,0 +1,30 @@
+Spec:
+    statements *= Statement
+;
+
+Statement: (stmt=NodeDecl | stmt=Assertion) ';';
+
+Assertion: 'assert(' be=BoolExpr ')';
+
+Var: /\$[A-Za-z_][A-Za-z0-9_]*/;
+
+Id: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/;
+
+NodeDecl: 'node' var=Var;
+
+Ref:
+    TypeOfRef
+  | AccessRef
+  | INT
+  | STRING
+;
+
+TypeOfRef: 'type(' ref=Ref ')';
+
+AccessRef: (id=Id | var=Var) ('->' member=ID)*;
+
+BoolExpr: EqBoolExpr | NeBoolExpr;
+
+EqBoolExpr: lref=Ref '==' rref=Ref;
+
+NeBoolExpr: lref=Ref '!=' rref=Ref;

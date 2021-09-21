@@ -1,0 +1,3 @@
+node $x;
+assert(type($x) == doml.types.Type1);
+assert($x->smth->smth2 == "smth else");
