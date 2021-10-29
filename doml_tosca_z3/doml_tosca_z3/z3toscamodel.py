@@ -5,7 +5,7 @@ from toscaparser.nodetemplate import NodeTemplate
 from toscaparser.functions import Function as ToscaFunc
 import z3
 
-from .z3_utils import make_enum_sort, create_option_datatype
+from .z3_utils import make_enum_sort
 from .tosca_utils import get_node_names, get_node_prop_names, get_node_type_names, get_strings, get_function_names
 
 
@@ -35,6 +35,7 @@ def _declare_val_sort(stringsym_sort: z3.DatatypeSortRef, funcsym_sort: z3.Datat
     val_sort.declare("str", ("strval", stringsym_sort))
     val_sort.declare("list", ("listval", list_val_sort))
     val_sort.declare("func", ("funcsymval", funcsym_sort), ("fargsval", list_val_sort))
+    val_sort.declare("none")
     # TODO: map
 
     list_val_sort.declare("nil")
@@ -91,7 +92,7 @@ def _declare_node_type_f(tpl: ToscaTemplate,
     assertions = [
         node_type_f(node_sort_dict[n.name]) == node_type_sort_dict[n.type]
         for n in tpl.nodetemplates
-    ]
+    ] + [node_type_f(node_sort.none) == node_type_sort.none]  # type: ignore
     return node_type_f, z3.And(*assertions)  # type: ignore
 
 
@@ -102,27 +103,29 @@ def _declare_node_prop_f(tpl: ToscaTemplate,
                          list_val_sort: z3.DatatypeSortRef,
                          stringsym_sort_dict: dict[str, z3.DatatypeRef],
                          funcsym_sort_dict: dict[str, z3.DatatypeRef],
-                         option_val_sort: z3.DatatypeSortRef,
                          node_prop_sort: z3.DatatypeSortRef,
                          node_prop_sort_dict: dict[str, z3.DatatypeRef]) \
         -> Tuple[z3.FuncDeclRef, z3.BoolRef]:
-    node_prop_f = z3.Function("node_prop", node_sort, node_prop_sort, option_val_sort)
+    node_prop_f = z3.Function("node_prop", node_sort, node_prop_sort, val_sort)
 
     def make_node_prop_assertion(node: NodeTemplate, prop_name: str) -> z3.BoolRef:
         if prop_name in node.get_properties():
             return node_prop_f(node_sort_dict[node.name], node_prop_sort_dict[prop_name]) == \
-                option_val_sort.some(_convert_val_to_z3(node.get_property_value(prop_name),  # type: ignore
-                                                        val_sort,
-                                                        list_val_sort,
-                                                        stringsym_sort_dict,
-                                                        funcsym_sort_dict))
+                _convert_val_to_z3(node.get_property_value(prop_name),  # type: ignore
+                                   val_sort,
+                                   list_val_sort,
+                                   stringsym_sort_dict,
+                                   funcsym_sort_dict)
         else:
             return node_prop_f(node_sort_dict[node.name], node_prop_sort_dict[prop_name]) == \
-                option_val_sort.none  # type: ignore
+                val_sort.none  # type: ignore
 
     assertions = [
         make_node_prop_assertion(node, prop_name)
         for node in tpl.nodetemplates
+        for prop_name in get_node_prop_names(tpl)
+    ] + [
+        node_prop_f(node_sort.none, node_prop_sort_dict[prop_name]) == val_sort.none  # type: ignore
         for prop_name in get_node_prop_names(tpl)
     ]
     return node_prop_f, z3.And(*assertions)  # type: ignore
@@ -139,9 +142,9 @@ class Z3ToscaModel:
         self.val_sort, self.list_val_sort = \
             _declare_val_sort(self.stringsym_sort, self.funcsym_sort)
         self.node_sort, self.node_sort_dict = \
-            make_enum_sort("Node", get_node_names(tpl))
+            make_enum_sort("Node", get_node_names(tpl), optional=True)
         self.node_type_sort, self.node_type_sort_dict = \
-            make_enum_sort("NodeType", get_node_type_names(tpl))
+            make_enum_sort("NodeType", get_node_type_names(tpl), optional=True)
         self.node_prop_sort, self.node_prop_sort_dict = \
             make_enum_sort("NodeProp", get_node_prop_names(tpl))
         self.solver = z3.Solver()
@@ -154,7 +157,6 @@ class Z3ToscaModel:
                 self.node_type_sort_dict
             )
         self.solver.add(node_type_f_ass)
-        self.option_val_sort = create_option_datatype(self.val_sort)
         self.node_prop_f, self.node_prop_f_ass = \
             _declare_node_prop_f(
                 self.tpl,
@@ -164,7 +166,6 @@ class Z3ToscaModel:
                 self.list_val_sort,
                 self.stringsym_sort_dict,
                 self.funcsym_sort_dict,
-                self.option_val_sort,
                 self.node_prop_sort,
                 self.node_prop_sort_dict
             )

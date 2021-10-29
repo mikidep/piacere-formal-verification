@@ -4,13 +4,10 @@
  - \* `DataProp` per le proprietà dei tipi di dato complessi
  - `StringSym` per le stringhe. Non ci interessa avere stringhe mutevoli quindi le riduciamo a simboli. A stringa uguale corrisponde simbolo uguale.
  - `FuncSym` per le funzioni di TOSCA.
- - `Node` per i nomi dei nodi
- - `NodeType` per i nomi dei tipi di nodo
- - `NodeProp` per le proprietà
- - \* `NodeReq` per i requirement
-
-### Option\[S\]
-`create_option_datatype` in `z3_utils`, chiamata sul sort `s`, crea un datatype analogo a `Maybe s`, aggiungendolo al dizionario `option` dichiarato nel modulo, in modo che scrivere `option[s]` ritorni il datatype corretto. Il datatype viene chiamato `Option_S` nel namespace di Z3.
+ - `Node` per i nomi dei nodi. Contiene `none`.
+ - `NodeType` per i nomi dei tipi di nodo. Contiene `none`.
+ - `NodeProp` per le proprietà.
+ - \* `NodeReq` per i requirement.
 
 ### Val, List_Val
 Sono i tipi reciprocamente ricorsivi
@@ -22,6 +19,7 @@ type Val =
 | list List_Val
 | * map Array[DataProp, Val]
 | func FuncSym List_Val
+| none
 
 type List_Val =
 | nil
@@ -32,5 +30,5 @@ Sono incerto nell'uso di `Array[DataProp, Val]` per il costruttore `map`, potrei
 
 ## Funzioni
  - `node_type :: Node -> NodeType` ritorna il tipo del nodo dato.
- - `node_prop :: Node -> NodeProp -> Option[Val]` ritorna il valore della proprietà data per il nodo dato, o `none` se questo non è definito.
- - \* `node_supertype :: NodeType -> Option[NodeType]` ritorna il supertipo del tipo di nodo dato, o `none` se questo non è definito.
+ - `node_prop :: Node -> NodeProp -> Val` ritorna il valore della proprietà data per il nodo dato, o `none` se questo non è definito.
+ - \* `node_supertype :: NodeType -> NodeType` ritorna il supertipo del tipo di nodo dato, o `none` se questo non è definito.

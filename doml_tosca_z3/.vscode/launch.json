@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "module": "doml_tosca_z3",
-            "args": ["doml_tosca.yaml"]
+            "args": ["doml_tosca.yaml", "vttest.vt"]
         }
     ]
 }

@@ -1,3 +1,3 @@
 node $x;
-assert(type($x) == doml.types.Type1);
-assert($x->smth->smth2 == "smth else");
+assert(type($x) == doml.nodes.SQLDatabaseService);
+assert($x->password == "p4ssw0rd");

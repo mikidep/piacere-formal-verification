@@ -126,6 +126,19 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "lark"
+version = "0.11.3"
+description = "a modern parsing library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+atomic_cache = ["atomicwrites"]
+nearley = ["js2py"]
+regex = ["regex"]
+
+[[package]]
 name = "mccabe"
 version = "0.6.1"
 description = "McCabe checker, plugin for flake8"
@@ -380,7 +393,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b8af3dc309139794dc2a1125045bdbd3a0d2ebdb1600c502496fef8f230e61a2"
+content-hash = "7316dd6c0dca65a33743353262b0c9780ec4fff006247ac9025caa000831d6ec"
 
 [metadata.files]
 arpeggio = [
@@ -426,6 +439,9 @@ flake8 = [
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
     {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
+]
+lark = [
+    {file = "lark-0.11.3.tar.gz", hash = "sha256:3100d9749b5a85735ec428b83100876a5da664804579e729c23a36341f961e7e"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
