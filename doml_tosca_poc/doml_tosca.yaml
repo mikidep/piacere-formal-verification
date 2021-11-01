@@ -97,7 +97,6 @@ topology_template:
             type: linux
             distribution: ubuntu
             version: "18.04"
-        # TODO
 
     db:
       type: doml.nodes.SQLDatabaseService # extends doml.nodes.CloudProviderService, provides tosca.capabilities.Endpoint.Database
@@ -118,8 +117,3 @@ topology_template:
     - webapp_vm_scaling:
         type: doml.policies.Scaling
         targets: [ webapp_vm ]
-#        properties:
-#          scale_up:
-#            cpu_above: 90.0
-#          scale_down:
-#            cpu_below: 20.0

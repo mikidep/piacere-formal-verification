@@ -12,6 +12,8 @@ To run the project on the included TOSCA model, run:
 $ poetry run python poc.py doml_tosca.yaml
 ```
 
+Specifications can be included in the file `checks.yaml`.
+
 To further query the generated Prolog model, running
 
 ```bash

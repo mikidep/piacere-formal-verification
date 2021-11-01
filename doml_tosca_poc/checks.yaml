@@ -33,3 +33,19 @@
         predicate:
           requirement_satisfied:
             args: [$nodeReqs, $typeReq]
+
+- name: requirement_cpus
+  description: node $n has a requirement with num_cpus=1.
+  check:
+    and:
+    - node:
+        $n:
+          requirements:
+          - $_: $reqn
+    - node:
+        $reqn:
+          capabilities:
+            $_:
+              properties:
+                num_cpus: 1
+                mem_size: 16 GB

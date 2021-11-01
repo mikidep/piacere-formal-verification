@@ -3,7 +3,7 @@ import sys
 from pyswip import Prolog
 
 import yaml
-from yaml.loader import SafeLoader
+from yaml.loader import Loader, SafeLoader
 
 class SafeLineLoader(SafeLoader):
     def construct_mapping(self, node, deep=False):
@@ -78,10 +78,9 @@ for pol in tosca.topology_template.policies:
     prolog.assertz(build_policy_fact(pol))
 
 prolog.consult(os.path.join(sys.path[0], "predicates.pl"))
-prolog.consult(os.path.join(sys.path[0], "checks.pl"))
 
 with open("checks.yaml") as checks_yaml_f:
-    check_yamls = yaml.load(checks_yaml_f)
+    check_yamls = yaml.load(checks_yaml_f, Loader=Loader)
 for check_yaml in check_yamls:
     header, description, ext_vars, pred = build_check_pred(check_yaml)
     prolog.assertz(pred)
