@@ -1,5 +1,7 @@
 import os
 import sys
+import re
+
 from pyswip import Prolog
 
 import yaml
@@ -86,7 +88,11 @@ for check_yaml in check_yamls:
     prolog.assertz(pred)
     results = prolog.query(header)
     for ext_var in ext_vars:
-        description = description.replace(ext_var, "{" + ext_var + "}")
+        description = re.sub(
+            re.escape(ext_var) + r"(?!\w)",
+            "{" + ext_var + "}",
+            description
+        )
     for res in results:
         fmt_dict = {ext_var: fmt_result(res[ext_vars[ext_var]]) for ext_var in ext_vars} # type: ignore
         print(description.format(**fmt_dict))

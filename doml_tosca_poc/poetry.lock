@@ -191,12 +191,12 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "tosca-parser"
-version = "2.3.1.dev4"
+version = "2.4.1.dev1"
 description = "Parser for TOSCA Simple Profile in YAML."
 category = "main"
 optional = false
 python-versions = ">=3.6"
-develop = true
+develop = false
 
 [package.dependencies]
 cliff = ">=2.8.0,<2.9.0 || >2.9.0"
@@ -207,8 +207,10 @@ requests = ">=2.14.2"
 stevedore = ">=1.20.0"
 
 [package.source]
-type = "directory"
-url = "../../tosca-parser"
+type = "git"
+url = "https://github.com/mikidep/tosca-parser.git"
+reference = "master"
+resolved_reference = "6cef1dfc712165c4d75aeae36f6bd4758fcfff5c"
 
 [[package]]
 name = "urllib3"
@@ -234,7 +236,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "675965f3d8919e12d547f3f03717b5e080c89704b321ea8a785b64b7c04e3bd1"
+content-hash = "d907e4dab249ec30ae44d0c0ddc8e43e9c76ff38f27341a3317e3f92052e2c2f"
 
 [metadata.files]
 attrs = [

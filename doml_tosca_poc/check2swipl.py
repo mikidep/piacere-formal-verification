@@ -313,5 +313,7 @@ def fmt_result(res) -> str:
         return res.value
     elif type(res) is list:
         return "[" + ", ".join([fmt_result(r) for r in res]) + "]"
+    elif type(res) is bytes:
+        return res.decode('UTF-8')
     else:
         return str(res)

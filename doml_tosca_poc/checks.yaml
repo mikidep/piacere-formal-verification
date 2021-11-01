@@ -35,7 +35,7 @@
             args: [$nodeReqs, $typeReq]
 
 - name: requirement_cpus
-  description: node $n has a requirement with num_cpus=1.
+  description: node $n has a requirement with num_cpus=$nc and mem_size=$ms.
   check:
     and:
     - node:
@@ -47,5 +47,5 @@
           capabilities:
             $_:
               properties:
-                num_cpus: 1
-                mem_size: 16 GB
+                num_cpus: $nc
+                mem_size: $ms
