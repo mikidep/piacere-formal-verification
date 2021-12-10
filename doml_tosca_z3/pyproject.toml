@@ -7,7 +7,7 @@ authors = ["Michele De Pascalis <michele.de.pascalis.1024@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 # tosca-parser = "^2.3.0"
-tosca-parser = { path = "../../tosca-parser", develop = true }
+tosca-parser = {git = "https://github.com/mikidep/tosca-parser.git"}
 z3-solver = "^4.8.12"
 textX = "^2.3.0"
 lark = "^0.11.3"
